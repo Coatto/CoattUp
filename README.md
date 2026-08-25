@@ -1,6 +1,6 @@
 # CoattUp
 
-https://github.com/Coatto/CoattUp/blob/main/Screenshot%20CoattUp.png
+![Screenshot CoattUp](Screenshot%20CoattUp.png)
 
 **Personalizza e ottimizza Windows in pochi clic — interamente in italiano.**
 
