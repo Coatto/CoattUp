@@ -34,7 +34,8 @@ Selezioni i tweak che vuoi, li applichi con un clic e puoi sempre ripristinare t
 Avvia CoattUp direttamente da PowerShell:
 
 ```powershell
-irm https://Coatto.github.io/CoattUp/CoattUp.ps1 | iex
+irm https://Coatto.github.io/CoattUp/CoattUp.ps1 | iex  
+````
 
 Uso
 
