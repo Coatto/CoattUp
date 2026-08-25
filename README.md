@@ -1,5 +1,7 @@
 # CoattUp
 
+https://github.com/Coatto/CoattUp/blob/main/Screenshot%20CoattUp.png
+
 **Personalizza e ottimizza Windows in pochi clic — interamente in italiano.**
 
 ![Windows 11](https://img.shields.io/badge/Windows%2011-%230078D6?style=flat-square)
