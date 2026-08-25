@@ -29,6 +29,32 @@ foreach ($__arg in $args) {
     }
 }
 
+# --- Gestione Execution Policy (solo sessione/processo, non invasiva) ---
+# Con "irm ... | iex" la policy di default puo bloccare l'import dei moduli engine/.
+# Impostiamo Bypass SOLO per il processo corrente (non tocca macchina/utente), cosi
+# l'utente non deve fare alcun passaggio manuale. Se non riusciamo a cambiarla, lo
+# script prosegue comunque: se poi l'import fallisce mostriamo le istruzioni.
+$execPolicyReady = $false
+try {
+    $curPolicy = Get-ExecutionPolicy -Scope Process -ErrorAction Stop
+    if ($curPolicy -in @('Bypass', 'Unrestricted', 'RemoteSigned')) {
+        $execPolicyReady = $true   # gia aperta, non serve forzare
+    }
+    else {
+        try {
+            Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force -ErrorAction Stop
+            $execPolicyReady = $true
+        }
+        catch {
+            # Nessun permesso (es. policy di gruppo/UAC): procediamo e tenteremo l'import.
+            $execPolicyReady = $false
+        }
+    }
+}
+catch {
+    $execPolicyReady = $false
+}
+
 $ErrorActionPreference = 'Stop'
 
 # --- 0. BOOTSTRAP / single-file entry point ---------------------------------
@@ -115,15 +141,29 @@ if (-not $Quiet) { Write-Host "Percorso di installazione: $root" }
 $UiDir  = Join-Path $root 'ui'
 
 # --- 1. Motore + localizzazione ---
-Import-Module (Join-Path $root 'engine\TweakEngine.psm1') -Force -DisableNameChecking
-# TweakVerifier non e re-esportato da TweakEngine: lo importiamo esplicitamente perche la GUI
-# usa Verify-Tweak (solo verifyCommands, nessuna modifica).
-Import-Module (Join-Path $root 'engine\TweakVerifier.psm1') -Force -DisableNameChecking
-# Il Logger e caricato da TweakEngine nel suo scope di modulo, non in quello globale:
-# lo importiamo esplicitamente perche la GUI usa Set-MyWinTweaksLogFile / Write-TweakLog
-# direttamente nello scope dello script.
-Import-Module (Join-Path $root 'engine\Logger.psm1') -Force -DisableNameChecking
-Import-Module (Join-Path $UiDir 'i18n.psm1') -Force -DisableNameChecking
+try {
+    Import-Module (Join-Path $root 'engine\TweakEngine.psm1') -Force -DisableNameChecking
+    # TweakVerifier non e re-esportato da TweakEngine: lo importiamo esplicitamente perche la GUI
+    # usa Verify-Tweak (solo verifyCommands, nessuna modifica).
+    Import-Module (Join-Path $root 'engine\TweakVerifier.psm1') -Force -DisableNameChecking
+    # Il Logger e caricato da TweakEngine nel suo scope di modulo, non in quello globale:
+    # lo importiamo esplicitamente perche la GUI usa Set-MyWinTweaksLogFile / Write-TweakLog
+    # direttamente nello scope dello script.
+    Import-Module (Join-Path $root 'engine\Logger.psm1') -Force -DisableNameChecking
+    Import-Module (Join-Path $UiDir 'i18n.psm1') -Force -DisableNameChecking
+}
+catch {
+    Write-Host ''
+    Write-Host 'Impossibile caricare i moduli di CoattUp (probabilmente bloccati dalla Execution Policy).' -ForegroundColor Red
+    Write-Host 'Risolvi in uno di questi modi, poi riavvia:' -ForegroundColor Yellow
+    Write-Host '  1. Apri PowerShell come Amministratore e poi esegui:' -ForegroundColor White
+    Write-Host '       Set-ExecutionPolicy Bypass -Scope Process -Force' -ForegroundColor Cyan
+    Write-Host '  2. oppure esegui una sola volta:' -ForegroundColor White
+    Write-Host '       Set-ExecutionPolicy Bypass -Scope CurrentUser -Force' -ForegroundColor Cyan
+    Write-Host 'Dettaglio errore: ' -NoNewline -ForegroundColor DarkGray
+    Write-Host $_.Exception.Message -ForegroundColor DarkGray
+    exit 1
+}
 
 # --- 0. Elevazione amministratore (solo GUI) ---
 # Se la sessione non e elevata, relaunch automatico come Amministratore (UAC) e termina
