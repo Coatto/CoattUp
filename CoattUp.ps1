@@ -13,12 +13,21 @@
 #   2. carica e valida il catalogo (bloccante, riusa Load-TweakJson) con filtro risk=high;
 #   3. mostra la finestra WPF (o l'elenco a console se -Console / GUI non disponibile).
 
-[CmdletBinding()]
-param(
-    [switch]$Quiet,
-    [switch]$Console,
-    [switch]$Update
-)
+# Le prime righe eseguibili NON devono essere [CmdletBinding()]/param(...): Invoke-Expression
+# (es.  irm ... | iex ) fallisce se lo script inizia con l'attributo. I parametri opzionali
+# vengono quindi letti manualmente da $args, così lo script funziona sia con "irm | iex" sia
+# con una normale esecuzione (es. .\CoattUp.ps1 -Update).
+$Quiet   = $false
+$Console = $false
+$Update  = $false
+foreach ($__arg in $args) {
+    switch ($__arg) {
+        '-Quiet'   { $Quiet   = $true }
+        '-Console' { $Console = $true }
+        '-Update'  { $Update  = $true }
+        default    { }
+    }
+}
 
 $ErrorActionPreference = 'Stop'
 
