@@ -1,0 +1,1509 @@
+﻿{
+  "schemaVersion": 2,
+  "source": "MyWinTweaks - catalogo attivo v1",
+  "description": "Catalogo attivo v1 - solo tweak low/medium",
+  "tweaks": [
+    {
+      "id": "activity-history-disable",
+      "name": "Activity History - Disable",
+      "description": "Disattiva la raccolta e la pubblicazione della cronologia attività in Windows.",
+      "category": "Privacy",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "low",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "none",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "EnableActivityFeed",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "PublishUserActivities",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "UploadUserActivities",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name EnableActivityFeed -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name PublishUserActivities -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name UploadUserActivities -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System')) { $false } else { (Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System').EnableActivityFeed -eq 0 }",
+        "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System')) { $false } else { (Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System').PublishUserActivities -eq 0 }",
+        "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System')) { $false } else { (Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System').UploadUserActivities -eq 0 }"
+      ],
+      "warnings": [
+        "L'annullamento ripristina lo stato predefinito di Windows."
+      ]
+    },
+    {
+      "id": "hibernation-disable",
+      "name": "Hibernation - Disable",
+      "description": "Disattiva l'ibernazione e rimuove il file hiberfil.sys.",
+      "category": "System",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "medium",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "none",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+          "name": "HibernateEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FlyoutMenuSettings",
+          "name": "ShowHibernateOption",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [
+        "powercfg.exe /hibernate off"
+      ],
+      "undoCommands": [
+        "powercfg.exe /hibernate on",
+        "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power' -Name HibernateEnabled -Value 1",
+        "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FlyoutMenuSettings' -Name ShowHibernateOption -Value 1"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power')) { $false } else { (Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power').HibernateEnabled -eq 0 }",
+        "powercfg.exe /a | Select-String 'Ibernazione'"
+      ],
+      "warnings": [
+        "Disattiva l'avvio rapido (Fast Startup) di Windows.",
+        "Reattivando l'ibernazione, alcuni valori andranno ricontrollati."
+      ]
+    },
+    {
+      "id": "widgets-remove",
+      "name": "Widgets - Remove",
+      "description": "Rimuove i pacchetti Widgets (WebExperience e WidgetsPlatformRuntime) e riavvia Esplora File.",
+      "category": "AppDebloat",
+      "scope": "both",
+      "requiresAdministrator": true,
+      "risk": "medium",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "explorer",
+      "osVersions": [
+        "win11"
+      ],
+      "preconditions": [
+        "Pacchetto MicrosoftWindows.Client.WebExperience installato"
+      ],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [],
+      "applyCommands": [
+        "Get-Process *Widget* -ErrorAction SilentlyContinue | Stop-Process -Force",
+        "Get-AppxPackage Microsoft.WidgetsPlatformRuntime -AllUsers | Remove-AppxPackage -AllUsers",
+        "Get-AppxPackage MicrosoftWindows.Client.WebExperience -AllUsers | Remove-AppxPackage -AllUsers"
+      ],
+      "undoCommands": [
+        "if (-not (Get-AppxPackage Microsoft.WidgetsPlatformRuntime -ErrorAction SilentlyContinue) -and -not (Get-AppxPackage MicrosoftWindows.Client.WebExperience -ErrorAction SilentlyContinue)) { Start-Process winget.exe -ArgumentList @('install','--id','9MSSGKG348SP','--silent','--accept-package-agreements','--accept-source-agreements') -WindowStyle Hidden }"
+      ],
+      "verifyCommands": [
+        "(Get-AppxPackage MicrosoftWindows.Client.WebExperience -ErrorAction SilentlyContinue) -eq $null",
+        "(Get-AppxPackage Microsoft.WidgetsPlatformRuntime -ErrorAction SilentlyContinue) -eq $null"
+      ],
+      "warnings": [
+        "I Widget possono essere reinstallati dal Microsoft Store, serve una connessione attiva.",
+        "Riavvia Esplora File per vedere l'effetto."
+      ]
+    },
+    {
+      "id": "location-tracking-disable",
+      "name": "Location Tracking - Disable",
+      "description": "Disattiva il servizio di localizzazione e il consenso alla posizione a livello di sistema.",
+      "category": "Privacy",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "low",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "service",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [
+        {
+          "name": "lfsvc",
+          "action": "startup",
+          "startupType": "Disabled",
+          "expectedState": "Stopped"
+        }
+      ],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location",
+          "name": "Value",
+          "type": "String",
+          "value": "Deny",
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Sensor\\Overrides\\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}",
+          "name": "SensorPermissionState",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SYSTEM\\Maps",
+          "name": "AutoUpdateEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [
+        "Set-Service -Name lfsvc -StartupType Disabled"
+      ],
+      "undoCommands": [
+        "Set-Service -Name lfsvc -StartupType Manual",
+        "Set-Service -Name lfsvc -Status Running",
+        "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location' -Name Value -Value 'Allow'",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Sensor\\Overrides\\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}' -Name SensorPermissionState -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SYSTEM\\Maps' -Name AutoUpdateEnabled -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "(Get-Service -Name lfsvc).StartType -eq 'Disabled'",
+        "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location')) { $false } else { (Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location').Value -eq 'Deny' }"
+      ],
+      "warnings": [
+        "Può impedire alle app di usare la posizione anche dopo un ripristino dalle impostazioni.",
+        "Riavvia il PC per applicare la modifica."
+      ]
+    },
+    {
+      "id": "services-set-to-manual",
+      "name": "Services - Set to Manual",
+      "description": "Imposta alcuni servizi di sistema su Avvio manuale o Disabilitato e ottimizza il limite di memoria dei processi host.",
+      "category": "PocoUtili",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "medium",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "service",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [
+        {
+          "name": "CscService",
+          "action": "startup",
+          "startupType": "Disabled",
+          "expectedState": "Stopped"
+        },
+        {
+          "name": "DiagTrack",
+          "action": "startup",
+          "startupType": "Disabled",
+          "expectedState": "Stopped"
+        },
+        {
+          "name": "MapsBroker",
+          "action": "startup",
+          "startupType": "Manual"
+        },
+        {
+          "name": "StorSvc",
+          "action": "startup",
+          "startupType": "Manual"
+        },
+        {
+          "name": "SharedAccess",
+          "action": "startup",
+          "startupType": "Disabled",
+          "expectedState": "Stopped"
+        }
+      ],
+      "dependencies": [],
+      "registryChanges": [],
+      "applyCommands": [
+        "Set-Service -Name CscService -StartupType Disabled",
+        "Set-Service -Name DiagTrack -StartupType Disabled",
+        "Set-Service -Name MapsBroker -StartupType Manual",
+        "Set-Service -Name StorSvc -StartupType Manual",
+        "Set-Service -Name SharedAccess -StartupType Disabled",
+        "$Memory=(Get-CimInstance Win32_PhysicalMemory | Measure-Object Capacity -Sum).Sum / 1KB",
+        "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control' -Name SvcHostSplitThresholdInKB -Value $Memory"
+      ],
+      "undoCommands": [
+        "Set-Service -Name CscService -StartupType Automatic",
+        "Set-Service -Name DiagTrack -StartupType Automatic",
+        "Set-Service -Name MapsBroker -StartupType Automatic",
+        "Set-Service -Name StorSvc -StartupType Automatic",
+        "Set-Service -Name SharedAccess -StartupType Automatic",
+        "Remove-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control' -Name SvcHostSplitThresholdInKB -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "(Get-Service CscService,DiagTrack,MapsBroker,StorSvc,SharedAccess).StartType"
+      ],
+      "warnings": [
+        "Disattivare la Telemetria potrebbe causare errori nei futuri aggiornamenti di Windows.",
+        "I valori di avvio dei servizi potrebbero non tornare identici su installazioni personalizzate.",
+        "Riavvia il PC per applicare la modifica."
+      ]
+    },
+    {
+      "id": "brave-browser-debloat",
+      "name": "Brave Browser - Debloat",
+      "description": "Disattiva funzionalità e telemetria di Brave Browser tramite Criteri di gruppo.",
+      "category": "PocoUtili",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "low",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "none",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [
+        "Brave Browser installato"
+      ],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "BraveRewardsDisabled",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "BraveWalletDisabled",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "BraveVPNDisabled",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "BraveAIChatEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "BraveStatsPingEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "BraveNewsDisabled",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "BraveTalkDisabled",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "TorDisabled",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "BraveP3AEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "UrlKeyedAnonymizedDataCollectionEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "SafeBrowsingExtendedReportingEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave",
+          "name": "MetricsReportingEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name BraveRewardsDisabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name BraveWalletDisabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name BraveVPNDisabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name BraveAIChatEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name BraveStatsPingEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name BraveNewsDisabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name BraveTalkDisabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name TorDisabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name BraveP3AEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name UrlKeyedAnonymizedDataCollectionEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name SafeBrowsingExtendedReportingEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave' -Name MetricsReportingEnabled -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave')) { $false } else { (Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave').BraveRewardsDisabled -eq 1 }"
+      ],
+      "warnings": [
+        "Su versioni molto vecchie di Brave alcuni valori potrebbero essere ignorati."
+      ]
+    },
+    {
+      "id": "edge-debloat",
+      "name": "Microsoft Edge - Debloat",
+      "description": "Disattiva telemetria, suggerimenti e funzionalità promozionali di Microsoft Edge tramite Criteri.",
+      "category": "AppDebloat",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "medium",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "none",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [
+        "Microsoft Edge installato"
+      ],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\EdgeUpdate",
+          "name": "CreateDesktopShortcutDefault",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "PersonalizationReportingEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "ShowRecommendationsEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "HideFirstRunExperience",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "UserFeedbackAllowed",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "ConfigureDoNotTrack",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "AlternateErrorPagesEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "EdgeCollectionsEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "EdgeShoppingAssistantEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "MicrosoftEdgeInsiderPromotionEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "ShowMicrosoftRewards",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "WebWidgetAllowed",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "DiagnosticData",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "EdgeAssetDeliveryServiceEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "WalletDonationEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
+          "name": "DefaultBrowserSettingsCampaignEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge\\ExtensionInstallBlocklist\\1",
+          "name": "ofefcgjbeghpigppfmkologfjadafddi",
+          "type": "String",
+          "value": "ofefcgjbeghpigppfmkologfjadafddi",
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\EdgeUpdate' -Name CreateDesktopShortcutDefault -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name PersonalizationReportingEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name ShowRecommendationsEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name HideFirstRunExperience -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name UserFeedbackAllowed -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name ConfigureDoNotTrack -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name AlternateErrorPagesEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name EdgeCollectionsEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name EdgeShoppingAssistantEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name MicrosoftEdgeInsiderPromotionEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name ShowMicrosoftRewards -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name WebWidgetAllowed -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name DiagnosticData -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name EdgeAssetDeliveryServiceEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name WalletDonationEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name DefaultBrowserSettingsCampaignEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge\\ExtensionInstallBlocklist\\1' -Name ofefcgjbeghpigppfmkologfjadafddi -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge')) { $false } else { (Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge').DiagnosticData -eq 0 }"
+      ],
+      "warnings": [
+        "Sblocca un'estensione Edge altrimenti disattivata.",
+        "Potrebbe essere necessario riavviare il browser per applicare le modifiche."
+      ]
+    },
+    {
+      "id": "consumer-features-disable",
+      "name": "ConsumerFeatures - Disable",
+      "description": "Disattiva le funzionalità consumer (suggerimenti, contenuti promozionali) di Windows.",
+      "category": "Privacy",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "low",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "none",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "name": "DisableWindowsConsumerFeatures",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent' -Name DisableWindowsConsumerFeatures -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent')) { $false } else { (Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent').DisableWindowsConsumerFeatures -eq 1 }"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "telemetry-disable",
+      "name": "Telemetry - Disable",
+      "description": "Disattiva telemetria, dati diagnostici e funzioni di personalizzazione basate su dati di utilizzo.",
+      "category": "Privacy",
+      "scope": "both",
+      "requiresAdministrator": true,
+      "risk": "medium",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "service",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [
+        {
+          "name": "diagtrack",
+          "action": "startup",
+          "startupType": "Disabled",
+          "expectedState": "Stopped"
+        },
+        {
+          "name": "wermgr",
+          "action": "startup",
+          "startupType": "Disabled",
+          "expectedState": "Stopped"
+        }
+      ],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo",
+          "name": "Enabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy",
+          "name": "TailoredExperiencesWithDiagnosticDataEnabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Speech_OneCore\\Settings\\OnlineSpeechPrivacy",
+          "name": "HasAccepted",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Input\\TIPC",
+          "name": "Enabled",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\InputPersonalization",
+          "name": "RestrictImplicitInkCollection",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\InputPersonalization",
+          "name": "RestrictImplicitTextCollection",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\InputPersonalization\\TrainedDataStore",
+          "name": "HarvestContacts",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Personalization\\Settings",
+          "name": "AcceptedPrivacyPolicy",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection",
+          "name": "AllowTelemetry",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "name": "Start_TrackProgs",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "name": "PublishUserActivities",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Siuf\\Rules",
+          "name": "NumberOfSIUFInPeriod",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "remove",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Siuf\\Rules",
+          "name": "PeriodInNanoSeconds"
+        }
+      ],
+      "applyCommands": [
+        "Set-MpPreference -SubmitSamplesConsent 2",
+        "Set-Service -Name diagtrack -StartupType Disabled",
+        "if (Get-Service -Name wermgr -ErrorAction SilentlyContinue) { Set-Service -Name wermgr -StartupType Disabled }",
+        "[Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT','1','Machine')"
+      ],
+      "undoCommands": [
+        "Set-MpPreference -SubmitSamplesConsent 1",
+        "Set-Service -Name diagtrack -StartupType Automatic",
+        "if (Get-Service -Name wermgr -ErrorAction SilentlyContinue) { Set-Service -Name wermgr -StartupType Automatic }",
+        "[Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT',$null,'Machine')",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection' -Name AllowTelemetry -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name PublishUserActivities -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -Name Enabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy' -Name TailoredExperiencesWithDiagnosticDataEnabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Speech_OneCore\\Settings\\OnlineSpeechPrivacy' -Name HasAccepted -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Input\\TIPC' -Name Enabled -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\InputPersonalization' -Name RestrictImplicitInkCollection -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\InputPersonalization' -Name RestrictImplicitTextCollection -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\InputPersonalization\\TrainedDataStore' -Name HarvestContacts -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Personalization\\Settings' -Name AcceptedPrivacyPolicy -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced' -Name Start_TrackProgs -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Siuf\\Rules' -Name NumberOfSIUFInPeriod -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection')) { $false } else { (Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection').AllowTelemetry -eq 0 }",
+        "(Get-Service diagtrack).StartType -eq 'Disabled'",
+        "[Environment]::GetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT','Machine') -eq '1'"
+      ],
+      "warnings": [
+        "Riduce l'invio di dati a Microsoft, inclusi gli errori segnalati a Windows.",
+        "Disattiva anche l'invio di campioni a Microsoft Defender.",
+        "Riavvia il PC per applicare la modifica."
+      ]
+    },
+    {
+      "id": "date-time-utc",
+      "name": "Date & Time - Set Time to UTC",
+      "description": "Imposta il clock hardware (RTC) per interpretare l'ora come UTC invece che ora locale.",
+      "category": "System",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "medium",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "reboot",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation",
+          "name": "RealTimeIsUniversal",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation' -Name RealTimeIsUniversal -Value 0"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation')) { $false } else { (Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation').RealTimeIsUniversal -eq 1 }"
+      ],
+      "warnings": [
+        "Da usare solo in dual-boot, e solo se anche l'altro sistema usa l'orario UTC.",
+        "È necessario riavviare il PC per applicare la modifica."
+      ]
+    },
+    {
+      "id": "file-explorer-home-gallery-disable",
+      "name": "File Explorer Home and Gallery - Disable",
+      "description": "Rimuove Home e Galleria dalla barra laterale di Esplora File e apre direttamente 'Questo PC'.",
+      "category": "UI",
+      "scope": "user",
+      "requiresAdministrator": false,
+      "risk": "low",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "explorer",
+      "osVersions": [
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Classes\\CLSID\\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}",
+          "name": "System.IsPinnedToNameSpaceTree",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Classes\\CLSID\\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}",
+          "name": "System.IsPinnedToNameSpaceTree",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "name": "LaunchTo",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Classes\\CLSID\\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}' -Name System.IsPinnedToNameSpaceTree -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Classes\\CLSID\\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}' -Name System.IsPinnedToNameSpaceTree -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced' -Name LaunchTo -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKCU:\\Software\\Classes\\CLSID\\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}')) { $false } else { (Get-ItemProperty 'HKCU:\\Software\\Classes\\CLSID\\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}').'System.IsPinnedToNameSpaceTree' -eq 0 }",
+        "if (-not (Test-Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced')) { $false } else { (Get-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced').LaunchTo -eq 1 }"
+      ],
+      "warnings": [
+        "Funziona solo su Windows 11; su Windows 10 non ha effetto.",
+        "Riavvia Esplora File per vedere l'effetto."
+      ]
+    },
+    {
+      "id": "visual-effects-best-performance",
+      "name": "Visual Effects - Best Performance",
+      "description": "Disattiva gran parte degli effetti visivi e delle animazioni per massimizzare le prestazioni.",
+      "category": "Performance",
+      "scope": "user",
+      "requiresAdministrator": false,
+      "risk": "medium",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "explorer",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "DragFullWindows",
+          "type": "String",
+          "value": "0",
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "MenuShowDelay",
+          "type": "String",
+          "value": "200",
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Control Panel\\Desktop\\WindowMetrics",
+          "name": "MinAnimate",
+          "type": "String",
+          "value": "0",
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Control Panel\\Keyboard",
+          "name": "KeyboardDelay",
+          "type": "String",
+          "value": "0",
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "name": "ListviewAlphaSelect",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "name": "ListviewShadow",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "name": "TaskbarAnimations",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "name": "TaskbarMn",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "name": "ShowTaskViewButton",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Search",
+          "name": "SearchboxTaskbarMode",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects",
+          "name": "VisualFXSetting",
+          "type": "DWord",
+          "value": 3,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\DWM",
+          "name": "EnableAeroPeek",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Control Panel\\Desktop",
+          "name": "UserPreferencesMask",
+          "type": "Binary",
+          "value": [
+            144,
+            18,
+            3,
+            128,
+            16,
+            0,
+            0,
+            0
+          ],
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name DragFullWindows -Value '1'",
+        "Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name MenuShowDelay -Value '400'",
+        "Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop\\WindowMetrics' -Name MinAnimate -Value '1'",
+        "Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced' -Name TaskbarAnimations -Value 1",
+        "Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects' -Name VisualFXSetting -Value 1",
+        "$sv = Get-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Search' -Name SearchboxTaskbarMode -ErrorAction SilentlyContinue; if ($null -eq $sv -or $sv.SearchboxTaskbarMode -eq 0) { Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Search' -Name SearchboxTaskbarMode -Value 3 }"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced')) { $false } else { (Get-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced').TaskbarAnimations -eq 0 }"
+      ],
+      "warnings": [
+        "Disattiva animazioni e anteprime; l'aspetto sarà più essenziale.",
+        "Il ripristino dei valori personalizzati potrebbe non tornare identico.",
+        "Riavvia Esplora File per vedere l'effetto."
+      ]
+    },
+    {
+      "id": "disable-reserved-storage",
+      "name": "Disable Reserved Storage",
+      "description": "Disattiva lo spazio riservato agli aggiornamenti tramite DISM.",
+      "category": "PocoUtili",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "medium",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "reboot",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [],
+      "applyCommands": [
+        "DISM /Online /Set-ReservedStorageState /State:Disabled"
+      ],
+      "undoCommands": [
+        "DISM /Online /Set-ReservedStorageState /State:Enabled"
+      ],
+      "verifyCommands": [
+        "DISM /Online /Get-ReservedStorageState"
+      ],
+      "warnings": [
+        "La modifica diventa effettiva solo dopo un riavvio del PC.",
+        "Su dischi quasi pieni gli aggiornamenti potrebbero avere più difficoltà."
+      ]
+    },
+    {
+      "id": "restore-point-create",
+      "name": "Restore Point - Create",
+      "description": "Abilita Ripristino configurazione di sistema e crea un punto di ripristino manuale.",
+      "category": "System",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "low",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "none",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [
+        "Protezione di sistema abilitata sull'unità di sistema"
+      ],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore",
+          "name": "SystemRestorePointCreationFrequency",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [
+        "$sr = Get-Service -Name srservice -ErrorAction SilentlyContinue; if ($sr -and $sr.StartType -ne 'Disabled') { Enable-ComputerRestore -Drive $Env:SystemDrive }",
+        "$sr = Get-Service -Name srservice -ErrorAction SilentlyContinue; if ($sr -and $sr.StartType -ne 'Disabled') { Checkpoint-Computer -Description 'System Restore Point created by MyWinTweaks' -RestorePointType MODIFY_SETTINGS }"
+      ],
+      "undoCommands": [
+        "$sr = Get-Service -Name srservice -ErrorAction SilentlyContinue; if ($sr -and $sr.StartType -ne 'Disabled') { Checkpoint-Computer -Description 'System Restore Point (undo)' -RestorePointType MODIFY_SETTINGS }",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore' -Name SystemRestorePointCreationFrequency -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "try { $rp = Get-ComputerRestorePoint -ErrorAction SilentlyContinue; if ($null -eq $rp) { $false } else { $true } } catch { $false }"
+      ],
+      "warnings": [
+        "Crea un punto di ripristino solo se la Protezione di sistema è attiva sull'unità."
+      ]
+    },
+    {
+      "id": "end-task-right-click-enable",
+      "name": "End Task With Right Click - Enable",
+      "description": "Abilita la voce 'Termina attività' nel menu contestuale della barra delle applicazioni.",
+      "category": "UI",
+      "scope": "user",
+      "requiresAdministrator": false,
+      "risk": "low",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "explorer",
+      "osVersions": [
+        "win11"
+      ],
+      "preconditions": [
+        "Windows 11 build 22621.2361 o successiva"
+      ],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings",
+          "name": "TaskbarEndTask",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings' -Name TaskbarEndTask -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings')) { $false } else { (Get-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings').TaskbarEndTask -eq 1 }"
+      ],
+      "warnings": [
+        "Funziona solo su Windows 11 recente (build 22621.2361 o successive).",
+        "Riavvia Esplora File per vedere l'effetto."
+      ]
+    },
+    {
+      "id": "storage-sense-disable",
+      "name": "Storage Sense - Disable",
+      "description": "Disattiva la pulizia automatica dello Storage Sense.",
+      "category": "System",
+      "scope": "user",
+      "requiresAdministrator": false,
+      "risk": "low",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "none",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\StorageSense\\Parameters\\StoragePolicy",
+          "name": "01",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Remove-ItemProperty -Path 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\StorageSense\\Parameters\\StoragePolicy' -Name '01' -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\StorageSense\\Parameters\\StoragePolicy')) { $false } else { (Get-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\StorageSense\\Parameters\\StoragePolicy').'01' -eq 0 }"
+      ],
+      "warnings": [
+        "La pulizia automatica dei file resterà disattivata fino a un nuovo ripristino."
+      ]
+    },
+    {
+      "id": "wpbt-disable",
+      "name": "Windows Platform Binary Table - Disable",
+      "description": "Disattiva l'esecuzione del firmware WPBT (Windows Platform Binary Table) all'avvio.",
+      "category": "PocoUtili",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "medium",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "reboot",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager",
+          "name": "DisableWpbtExecution",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Remove-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager' -Name DisableWpbtExecution -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager')) { $false } else { (Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager').DisableWpbtExecution -eq 1 }"
+      ],
+      "warnings": [
+        "Disattiva eventuali software installati dal produttore (OEM) all'avvio.",
+        "È necessario riavviare il PC per applicare la modifica."
+      ]
+    },
+    {
+      "id": "prevent-device-companion-apps",
+      "name": "Prevent Device Companion Apps",
+      "description": "Impedisce il download automatico di app companion per i dispositivi tramite Criteri.",
+      "category": "Privacy",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "low",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "none",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Device Metadata",
+          "name": "PreventDeviceMetadataFromNetwork",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Device Metadata' -Name PreventDeviceMetadataFromNetwork -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Device Metadata')) { $false } else { (Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Device Metadata').PreventDeviceMetadataFromNetwork -eq 1 }"
+      ],
+      "warnings": [
+        "Può impedire il download automatico di app e driver per le periferiche collegate."
+      ]
+    },
+    {
+      "id": "razer-software-auto-install-disable",
+      "name": "Razer Software Auto-Install - Disable",
+      "description": "Impedisce l'installazione automatica del software Razer e dei co-installer dei driver.",
+      "category": "PocoUtili",
+      "scope": "machine",
+      "requiresAdministrator": true,
+      "risk": "medium",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "none",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [
+        "Cartella %SystemRoot%\\Installer\\Razer presente"
+      ],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DriverSearching",
+          "name": "SearchOrderConfig",
+          "type": "DWord",
+          "value": 0,
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKLM",
+          "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Device Installer",
+          "name": "DisableCoInstallers",
+          "type": "DWord",
+          "value": 1,
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [
+        "if (Test-Path \"$Env:SystemRoot\\Installer\\Razer\") { icacls \"$Env:SystemRoot\\Installer\\Razer\" /deny \"Everyone:(W)\" }"
+      ],
+      "undoCommands": [
+        "if (Test-Path \"$Env:SystemRoot\\Installer\\Razer\") { icacls \"$Env:SystemRoot\\Installer\\Razer\" /remove:d Everyone }",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DriverSearching' -Name SearchOrderConfig -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Device Installer' -Name DisableCoInstallers -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DriverSearching')) { $false } else { (Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DriverSearching').SearchOrderConfig -eq 0 }",
+        "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Device Installer')) { $false } else { (Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Device Installer').DisableCoInstallers -eq 1 }"
+      ],
+      "warnings": [
+        "Impedisce l'installazione automatica di Razer e dei suoi componenti.",
+        "La modifica riguarda solo i PC con il software Razer già presente."
+      ]
+    },
+    {
+      "id": "mouse-pointer-precision-disable",
+      "name": "Mouse Pointer Precision - Disable",
+      "description": "Disattiva l'opzione \"Aumenta precisione puntatore\" del mouse, che accelera il puntatore in base alla velocità del movimento.",
+      "category": "UI",
+      "scope": "user",
+      "requiresAdministrator": false,
+      "risk": "low",
+      "irreversible": false,
+      "confirmDialog": false,
+      "restartRequired": "service",
+      "osVersions": [
+        "win10",
+        "win11"
+      ],
+      "preconditions": [],
+      "services": [],
+      "dependencies": [],
+      "registryChanges": [
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Control Panel\\Mouse",
+          "name": "MouseSpeed",
+          "type": "String",
+          "value": "0",
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Control Panel\\Mouse",
+          "name": "MouseThreshold1",
+          "type": "String",
+          "value": "0",
+          "backupOriginalValue": true
+        },
+        {
+          "operation": "set",
+          "hive": "HKCU",
+          "path": "HKCU:\\Control Panel\\Mouse",
+          "name": "MouseThreshold2",
+          "type": "String",
+          "value": "0",
+          "backupOriginalValue": true
+        }
+      ],
+      "applyCommands": [],
+      "undoCommands": [
+        "Remove-ItemProperty -Path 'HKCU:\\Control Panel\\Mouse' -Name MouseSpeed -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Control Panel\\Mouse' -Name MouseThreshold1 -ErrorAction SilentlyContinue",
+        "Remove-ItemProperty -Path 'HKCU:\\Control Panel\\Mouse' -Name MouseThreshold2 -ErrorAction SilentlyContinue"
+      ],
+      "verifyCommands": [
+        "if (-not (Test-Path 'HKCU:\\Control Panel\\Mouse')) { $false } else { (Get-ItemProperty 'HKCU:\\Control Panel\\Mouse').MouseSpeed -eq '0' }"
+      ],
+      "warnings": [
+        "Modifica la sensazione di movimento del puntatore: il puntatore non si muoverà più con accelerazione.",
+        "A volte serve riavviare il PC o riavviare la sessione per applicare la modifica."
+      ]
+    }
+  ]
+}
