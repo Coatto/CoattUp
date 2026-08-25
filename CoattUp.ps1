@@ -1,8 +1,8 @@
-﻿# CoattUp.ps1 — ENTRY POINT (GUI WPF)
+# CoattUp.ps1 - ENTRY POINT (GUI WPF)
 # Avvio GUI:  powershell -ExecutionPolicy Bypass -File CoattUp.ps1
 # Fallback console (per test/ambienti senza WPF):  ... -File CoattUp.ps1 -Console
 #
-# Single-file bootstrap: questo file può funzionare anche eseguito da solo, ad esempio
+# Single-file bootstrap: questo file puo funzionare anche eseguito da solo, ad esempio
 # tramite  irm https://Coatto.github.io/CoattUp/CoattUp.ps1 | iex
 # Prima di avviare la GUI garantisce che il progetto completo (engine/, ui/, data/) sia
 # presente in locale, scaricandolo da GitHub se manca (cartella installata: $HOME\CoattUp).
@@ -15,7 +15,7 @@
 
 # Le prime righe eseguibili NON devono essere [CmdletBinding()]/param(...): Invoke-Expression
 # (es.  irm ... | iex ) fallisce se lo script inizia con l'attributo. I parametri opzionali
-# vengono quindi letti manualmente da $args, così lo script funziona sia con "irm | iex" sia
+# vengono quindi letti manualmente da $args, cosi lo script funziona sia con "irm | iex" sia
 # con una normale esecuzione (es. .\CoattUp.ps1 -Update).
 $Quiet   = $false
 $Console = $false
@@ -46,7 +46,7 @@ function Test-CoattUpProject {
            (Test-Path (Join-Path $Root 'data'))
 }
 
-# Modalità sviluppo: eseguito da una cartella che contiene già engine/, ui/, data/.
+# Modalita sviluppo: eseguito da una cartella che contiene gia engine/, ui/, data/.
 $IsDev = $false
 if ($null -ne $script:LocalDir -and (Test-CoattUpProject -Root $script:LocalDir)) {
     $IsDev = $true
@@ -95,19 +95,19 @@ function Install-CoattUpFromGithub {
     }
 }
 
-# In modalità sviluppo l'installazione è già completa; -Update ha senso solo per
+# In modalita sviluppo l'installazione e gia completa; -Update ha senso solo per
 # l'installazione utente (forza il ri-scaricamento dell'ultima versione).
 $projectComplete = Test-CoattUpProject -Root $root
 if (-not $projectComplete -or ($Update -and -not $IsDev)) {
     if (-not $IsDev) {
         Install-CoattUpFromGithub -InstallRoot $root
         if (-not (Test-CoattUpProject -Root $root)) {
-            Write-Host 'Il progetto scaricato non è completo. Verifica la connessione e riprova.' -ForegroundColor Red
+            Write-Host 'Il progetto scaricato non e completo. Verifica la connessione e riprova.' -ForegroundColor Red
             exit 1
         }
     }
     elseif (-not $Quiet) {
-        Write-Host 'Progetto già presente in locale (modalità sviluppo). Nessun download necessario.'
+        Write-Host 'Progetto gia presente in locale (modalita sviluppo). Nessun download necessario.'
     }
 }
 if (-not $Quiet) { Write-Host "Percorso di installazione: $root" }
@@ -116,18 +116,18 @@ $UiDir  = Join-Path $root 'ui'
 
 # --- 1. Motore + localizzazione ---
 Import-Module (Join-Path $root 'engine\TweakEngine.psm1') -Force -DisableNameChecking
-# TweakVerifier non è re-esportato da TweakEngine: lo importiamo esplicitamente perché la GUI
+# TweakVerifier non e re-esportato da TweakEngine: lo importiamo esplicitamente perche la GUI
 # usa Verify-Tweak (solo verifyCommands, nessuna modifica).
 Import-Module (Join-Path $root 'engine\TweakVerifier.psm1') -Force -DisableNameChecking
-# Il Logger è caricato da TweakEngine nel suo scope di modulo, non in quello globale:
-# lo importiamo esplicitamente perché la GUI usa Set-MyWinTweaksLogFile / Write-TweakLog
+# Il Logger e caricato da TweakEngine nel suo scope di modulo, non in quello globale:
+# lo importiamo esplicitamente perche la GUI usa Set-MyWinTweaksLogFile / Write-TweakLog
 # direttamente nello scope dello script.
 Import-Module (Join-Path $root 'engine\Logger.psm1') -Force -DisableNameChecking
 Import-Module (Join-Path $UiDir 'i18n.psm1') -Force -DisableNameChecking
 
 # --- 0. Elevazione amministratore (solo GUI) ---
-# Se la sessione non è elevata, relaunch automatico come Amministratore (UAC) e termina
-# l'istanza corrente. In modalità -Console (test/fallback) NON rilancia: restano i privilegi
+# Se la sessione non e elevata, relaunch automatico come Amministratore (UAC) e termina
+# l'istanza corrente. In modalita -Console (test/fallback) NON rilancia: restano i privilegi
 # correnti per non bloccare gli script di test.
 if (-not $Console) {
     $identity    = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -149,7 +149,7 @@ if (-not $Console) {
 
 # --- 2. Caricamento + validazione bloccante del catalogo (usa i default del modulo) ---
 $catalog = Load-TweakJson
-# Load-TweakJson ha già scartato i tweak risk=high (filtro v1).
+# Load-TweakJson ha gia scartato i tweak risk=high (filtro v1).
 $activeTweaks = @($catalog.tweaks)
 
 # --- 3. Elenco console (fallback / test) ---
@@ -199,7 +199,7 @@ function Add-ResultLine {
 # Colora la barra del titolo di sistema (caption) della finestra WPF con l'attributo DWM
 # DWMWA_CAPTION_COLOR (attr 35, Windows 11 build 22000+). Best-effort: se non applicabile
 # (sistema senza caption colorata) non fa nulla e non altera la struttura della finestra.
-# Il colore è in ordine BGR come previsto dall'attributo DWM.
+# Il colore e in ordine BGR come previsto dall'attributo DWM.
 function Set-TitleBarColor {
     param($Window)
     try {
@@ -221,7 +221,7 @@ public class Dwm {
 }
 
 # Converte le sequenze letterali di newline ("\n" backslash-n e "`n" backtick-n) in un
-# andata a capo reale. Applicato a TUTTI i testi mostrati (popup, dettaglio, avvisi) così
+# andata a capo reale. Applicato a TUTTI i testi mostrati (popup, dettaglio, avvisi) cosi
 # non resta mai un "\n" visibile al posto dell'a-capo.
 function Expand-NewLines {
     param([string]$Text)
@@ -321,9 +321,9 @@ function Show-StyledDialog {
     )
     try {
         # Variabile di script per il risultato del dialogo: le closure PowerShell/WPF non
-        # risolvono in modo affidabile variabili locali ($w) né $this.Tag quando l'evento
+        # risolvono in modo affidabile variabili locali ($w) ne $this.Tag quando l'evento
         # scatta fuori dal contesto di creazione. Usiamo $script:DlgResult, sempre nel
-        # global/script scope, così il Sì/No/OK è affidabile.
+        # global/script scope, cosi il Si/No/OK e affidabile.
         $script:DlgResult = $false
         $styles = New-Object System.Windows.ResourceDictionary
         $styles.Source = (New-Object System.Uri((Join-Path $UiDir 'styles.xaml')))
@@ -336,11 +336,11 @@ function Show-StyledDialog {
             default    { '#2563EB' }
         }
         $icon = switch ($Kind) {
-            'success'  { '✓' }
-            'warning'  { '⚠' }
-            'error'    { '✕' }
+            'success'  { 'v' }
+            'warning'  { '!' }
+            'error'    { 'X' }
             'question' { '?' }
-            default    { 'ℹ' }
+            default    { 'i' }
         }
 
         $w = New-Object System.Windows.Window
@@ -431,7 +431,7 @@ function Show-StyledDialog {
             $noBtn.Add_Click({ $script:DlgResult = $false; $dlg = $this.Tag; if ($null -ne $dlg) { $dlg.Close() } })
             $footer.Children.Add($noBtn) | Out-Null
             $yesBtn = New-Object System.Windows.Controls.Button
-            $yesBtn.Content = 'Sì'
+            $yesBtn.Content = 'Si'
             $sYes = Resolve-Resource -Window $w -Key 'PrimaryButtonStyle'
             if ($null -ne $sYes) { $yesBtn.Style = $sYes }
             $yesBtn.Tag = $w
@@ -514,7 +514,7 @@ function Show-Detail {
 
         $script:Ui.Scope.Text    = (Get-ScopeLabel -Scope $Tweak.scope)
         $script:Ui.Restart.Text  = (Get-RestartLabel -Restart $Tweak.restartRequired)
-        $script:Ui.Admin.Text    = if ($Tweak.requiresAdministrator) { 'Sì' } else { 'No' }
+        $script:Ui.Admin.Text    = if ($Tweak.requiresAdministrator) { 'Si' } else { 'No' }
         $warns = @($Tweak.warnings)
         $warnsText = if ($warns.Count -gt 0) { ($warns -join "`n") } else { 'Nessun avviso' }
         $script:Ui.Warnings.Text = Expand-NewLines ([string]$warnsText)
@@ -529,7 +529,7 @@ function Show-Detail {
 # Costruisce una singola riga-tweak con i suoi gestori.
 # IMPORTANTE: i gestori NON usano variabili chiuse dalla funzione (le closure di PowerShell non
 # le risolvono in modo affidabile quando WPF esegue l'evento fuori dallo stack di creazione).
-# Usano invece `$this` (l'oggetto che ha generato l'evento): da lì leggono il tweak (.Tag)
+# Usano invece `$this` (l'oggetto che ha generato l'evento): da li leggono il tweak (.Tag)
 # e i controlli correlati (.DataContext / .Header.Children) senza mai leggere .IsChecked/.IsSelected
 # dall'oggetto dati del tweak.
 function New-TweakTreeItem {
@@ -553,7 +553,7 @@ function New-TweakTreeItem {
             try {
                 $script:selectedCount++
                 Update-SelectionCount
-                # $this = CheckBox. La riga è in .DataContext, il tweak in .Tag.
+                # $this = CheckBox. La riga e in .DataContext, il tweak in .Tag.
                 $tw  = $this.Tag
                 $row = $this.DataContext
                 if ($null -ne $row) { $row.IsSelected = $true }
@@ -600,7 +600,7 @@ function New-TweakTreeItem {
     $item.Header = $sp
     $item.Add_Selected({
         try {
-            # $this = TreeViewItem. Il tweak è in .Tag.
+            # $this = TreeViewItem. Il tweak e in .Tag.
             $tw = $this.Tag
             if ($null -eq $tw) { Show-Detail -Tweak $null; return }
             Set-Status ('Selezionato: {0}' -f (Get-TweakUiName -Id $tw.id))
@@ -661,11 +661,11 @@ function Invoke-VerifySelected {
 # Applicazione: ATTIVA SOLO i tweak spuntati e non ancora attivi. NESSUN tweak viene
 # disattivato da Applica (la disattivazione avviene solo con "Annulla" / Invoke-UndoAll).
 # - spuntato e non attivo  -> Apply-Tweak (ATTIVA)
-# - spuntato e già attivo  -> nessuna azione (già attivo)
-# - NON spuntato           -> NESSUN AZIONE (lasciato esattamente com'è)
+# - spuntato e gia attivo  -> nessuna azione (gia attivo)
+# - NON spuntato           -> NESSUN AZIONE (lasciato esattamente com'e)
 function Invoke-ApplySelected {
     $toEnable = @()   # da attivare
-    $already  = 0     # già attivi (nessuna azione)
+    $already  = 0     # gia attivi (nessuna azione)
     foreach ($tw in $script:allTweaks) {
         $cb = $script:checkBoxes[$tw.id]
         $desired = ($null -ne $cb -and $cb.IsChecked -eq $true)
@@ -676,7 +676,7 @@ function Invoke-ApplySelected {
             $hasErr = @($res.Results | Where-Object { $_.Status -eq 'Error' }).Count -gt 0
             $active = (-not $hasErr) -and $res.AllPassed
         } catch { $active = $false }
-        if ($active) { $already++ }       # spuntato e già attivo -> nessuna azione
+        if ($active) { $already++ }       # spuntato e gia attivo -> nessuna azione
         else { $toEnable += $tw }         # spuntato e non attivo -> ATTIVA
     }
 
@@ -719,7 +719,7 @@ function Invoke-ApplySelected {
                 if ($res.Success) {
                     $enabled++
                     $line = ('{0,-46} ATTIVATO' -f (Get-TweakUiName -Id $tw.id))
-                    if ($tw.restartRequired -ne 'none') { $line += ('  · richiede riavvio: {0}' -f (Get-RestartLabel -Restart $tw.restartRequired)) }
+                    if ($tw.restartRequired -ne 'none') { $line += ('  - richiede riavvio: {0}' -f (Get-RestartLabel -Restart $tw.restartRequired)) }
                     [void]$sb.AppendLine($line)
                 }
                 else {
@@ -794,7 +794,7 @@ function Invoke-UndoAll {
             Set-Status (Get-UiText 'undo.progress' -Args @((Get-TweakUiName -Id $tw.id)))
             try { Write-TweakLog -Level Info -Message ("UNDO: processo " + $tw.id) } catch { }
             try {
-                # -BackupFile $null è gestito: Undo-Tweak esegue comunque gli undoCommands.
+                # -BackupFile $null e gestito: Undo-Tweak esegue comunque gli undoCommands.
                 $res = Undo-Tweak -Tweak $tw -BackupFile $backupMap[$tw.id] -LogFile $logFile
                 if ($res.Success) {
                     $reverted++
@@ -817,7 +817,7 @@ function Invoke-UndoAll {
         Update-StatusForTweaks -Tweaks $tweaks
 
         # Ripristino totale: rimetti la barra di ricerca al DEFAULT Windows 11 (modo 3 =
-        # "Casella di ricerca"), perché il tweak "Effetti visivi" la modifica. La shell si
+        # "Casella di ricerca"), perche il tweak "Effetti visivi" la modifica. La shell si
         # aggiorna SENZA aprire finestre Esplora (Stop-Process fa riavviare Esplora da solo).
         try {
             Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' `
@@ -869,7 +869,7 @@ function Show-Gui {
     # Log operativo per la GUI (usa il logger del motore).
     Set-MyWinTweaksLogFile -Path (Join-Path $root 'logs\app.log')
 
-    # Riferimenti agli elementi con x:Name. Li salviamo nello SCRIPT scope così i gestori
+    # Riferimenti agli elementi con x:Name. Li salviamo nello SCRIPT scope cosi i gestori
     # di evento (eseguiti da WPF, fuori dallo stack di Show-Gui) li trovano sempre.
     $script:Ui = @{}
     $script:Ui.Window      = $window
@@ -1036,7 +1036,7 @@ function Show-Gui {
             $combo.Add_SelectionChanged({
                 if ($script:_updatingSearchMode) { return }
                 try {
-                    # $this = ComboBox. Il valore selezionato è in .SelectedItem.Tag.
+                    # $this = ComboBox. Il valore selezionato e in .SelectedItem.Tag.
                     $cb = $this
                     $sel = $cb.SelectedItem
                     if ($null -eq $sel) { return }
@@ -1073,7 +1073,7 @@ function Show-Gui {
     }
 
     # Stato reale iniziale: Verify-Tweak per ogni tweak e colora SOLO l'indicatore.
-    # Le checkbox restano tutte NON spuntate (la X = solo ciò che l'utente vuole applicare).
+    # Le checkbox restano tutte NON spuntate (la X = solo cio che l'utente vuole applicare).
     Update-StatusForTweaks -Tweaks $script:allTweaks
 
     # Filtro di ricerca per nome/descrizione (robusto: nessun crash).
