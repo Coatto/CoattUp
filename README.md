@@ -36,15 +36,14 @@ Avvia CoattUp direttamente da PowerShell:
 ```powershell
 irm https://Coatto.github.io/CoattUp/CoattUp.ps1 | iex  
 ````
-
 ## Uso
 
--Spunta i tweak che vuoi applicare.
--Clicca Applica selezione.
--Usa Annulla per ripristinare Windows allo stato predefinito.
+  Spunta i tweak che vuoi applicare.
+  Clicca Applica selezione.
+  Usa Annulla per ripristinare Windows allo stato predefinito.
 
 ## Avvertenze / Sicurezza
-
--Alcuni tweak modificano il registro di Windows e possono richiedere privilegi di amministratore.
--Prima di applicare modifiche, consigliamo di creare un punto di ripristino del sistema.
--Usa CoattUp a tuo rischio: verifica sempre che un tweak sia adatto alle tue esigenze.
+  
+- Alcuni tweak modificano il registro di Windows e possono richiedere privilegi di amministratore.
+- Prima di applicare modifiche, consigliamo di creare un punto di ripristino del sistema.
+- Usa CoattUp a tuo rischio: verifica sempre che un tweak sia adatto alle tue esigenze.
